@@ -54,12 +54,14 @@ npm install          # 只需要 typescript 与 @types/node
 npm run build        # 产出 dist/
 ```
 
-或者不克隆，直接把 GitHub 仓库作为依赖登记（pnpm 支持 Git 链接）：
+或者不克隆，直接把 GitHub 仓库作为依赖登记（pnpm 支持 Git 链接，安装时会自动执行包内的 `prepare` 脚本完成构建，无需手动 build）：
 
 ```bash
 # 在 ~/.dsh/profiles/web 下
 pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#main
 ```
+
+> 命令解析：`dsh-lark-cli` 是包名（须与仓库 `package.json` 的 `name` 一致）；`@github:用户名/仓库#main` 指定从 GitHub 的 `main` 分支安装（`#` 后也可写 tag，如 `#v0.1.0`）。pnpm 会浅克隆该分支 → 执行 `prepare` 脚本（即 `tsc` 构建）→ 把 `files` 声明的 `dist / cordis.yml / skills` 装进 `node_modules`。
 
 ### 方式二：源码构建
 

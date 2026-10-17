@@ -25,6 +25,7 @@
     "skills"
   ],
   "scripts": {
+    "prepare": "node ./node_modules/typescript/bin/tsc -p tsconfig.json || true",
     "build": "node ./node_modules/typescript/bin/tsc -p tsconfig.json",
     "typecheck": "node ./node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
     "test": "node test/smoke.mjs",

@@ -54,12 +54,14 @@ npm install          # only typescript and @types/node
 npm run build        # produces dist/
 ```
 
-Or register the GitHub repo directly as a dependency (pnpm supports Git links):
+Or register the GitHub repo directly as a dependency (pnpm supports Git links; the package's `prepare` script runs the build automatically during install — no manual build needed):
 
 ```bash
 # inside ~/.dsh/profiles/web
 pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#main
 ```
+
+> How it parses: `dsh-lark-cli` is the package name (must match the repo's `package.json` `name`); `@github:user/repo#main` installs from the `main` branch on GitHub (`#` can also take a tag, e.g. `#v0.1.0`). pnpm shallow-clones the branch → runs the `prepare` script (the `tsc` build) → installs what `files` declares (`dist / cordis.yml / skills`) into `node_modules`.
 
 ### Option 2: build from source
 
