@@ -19,13 +19,56 @@
 
 ## 安装
 
+三种安装方式任选其一；装好后都需要按「[挂载进 profile](#挂载进-profile)」完成接线。
+
+### 方式一：GitHub 链接一键构建（推荐）
+
+直接从 GitHub 拉取并构建，不需要本地已有源码：
+
 ```bash
-cd D:/Code/projects/dsh-lark-cli
-npm install          # 只需要 typescript 与 @types/node（若依赖已就绪可跳过）
+git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
+cd dsh-lark-cli
+npm install          # 只需要 typescript 与 @types/node
 npm run build        # 产出 dist/
 ```
 
-把插件挂进 profile（示例为 `web`）：
+或者不克隆，直接把 GitHub 仓库作为依赖登记（pnpm 支持 Git 链接）：
+
+```bash
+# 在 ~/.dsh/profiles/web 下
+pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#main
+```
+
+### 方式二：源码构建
+
+适合需要本地修改技能或源码的场景：
+
+```bash
+git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
+cd dsh-lark-cli
+npm install
+npm run build
+```
+
+之后在 profile 里用 `link:` 指向本地目录（见「挂载进 profile」），本地改动即时生效，无需重新发布。
+
+### 方式三：Prompt 构建（让 AI 会话代为执行）
+
+把下面这段话直接发给 dsh 会话里的模型，由它代为完成安装：
+
+```text
+请帮我安装 dsh-lark-cli 插件：
+1. 克隆 https://github.com/aminuoshi-378/dsh-lark 到本地；
+2. 在仓库目录里执行 npm install && npm run build；
+3. 按 README「挂载进 profile」一节，把插件接线到 ~/.dsh/profiles/web（package.json 依赖 + bundle + cordis.patch.yml）；
+4. 执行 dsh --profile web --dump-config 验证出现 lark-cli 条目。
+```
+
+模型会调用它的 shell 工具逐步执行；涉及 profile 配置文件的修改属于工作区外写入，模型会先向你请求批准。
+
+## 挂载进 profile
+
+三种方式构建完成后，都需要把插件挂进 profile（示例为 `web`）：
 
 1. `~/.dsh/profiles/web/package.json`
    - `dependencies` 增加 `"dsh-lark-cli": "link:D:/Code/projects/dsh-lark-cli"`
@@ -77,19 +120,45 @@ npm run build        # 产出 dist/
 
 ## 技能清单
 
-| 技能 | 覆盖 |
-|---|---|
-| `lark-shared` | 身份、认证、输出契约、高风险确认、**dsh 执行通道规则** |
-| `lark-doc` | 云文档读写、附件、思维笔记 |
-| `lark-im` | 消息、群聊、卡片、加急 |
-| `lark-calendar` | 日程、参会人、会议室 |
-| `lark-task` | 任务、清单、任务智能体 |
-| `lark-drive` | 云空间文件、权限、导入导出 |
-| `lark-sheets` | 电子表格结构 / 单元格 / 图表 / 透视 |
-| `lark-base` | 多维表格、视图、表单、仪表盘 |
-| `lark-wiki` | 知识空间、节点树、知识库成员 |
+插件随包分发九个技能，模型按当前任务自动加载对应技能；每个技能目录下还有 `references/` 细分文档（按相对路径按需读取），覆盖更细的命令语法与场景 playbook。
 
-技能目录同时通过 `resourceBase` 暴露给模型，正文里的 `references/...` 可按相对路径读取。
+### `lark-shared` — 公共规则与认证（必读基础）
+
+所有飞书操作的公共底座：身份选择（`--as user` / `--as bot` 的判定规则）、认证与登录状态排查、JSON 输出契约解析、高风险写操作确认门禁，以及最关键的「**在 dsh 中执行**」规则——本环境不经 shell 跑命令，所有 `lark-cli` 命令一律拆词成 `lark_cli` 工具的 `argv` 调用（管道、`&&`、重定向如何改写，`--jq` 筛选怎么用都在这一节）。首次使用任何 lark 技能前模型都会先读本技能。
+
+### `lark-doc` — 云文档 / Docx
+
+云文档的创建、读取、更新（含 XML 块级结构）、Markdown 双向转换、历史版本；插入与下载图片附件；思维笔记读写；白板；十余种文体的写作流派模板（PRD、周报、会议纪要、小红书、公文、研究报告等，见 `references/genres/`）；还有「创建后自动跑 workflow」的组合用法。
+
+### `lark-im` — 即时通讯
+
+单聊与群聊消息的收发、回复、编辑、撤回语义；按关键词搜索消息与群；群成员、群设置、话题群管理；交互卡片（Card 2.0 全量组件 schema：按钮、表单、图表、列容器、图片等）；表情回复；消息加急（应用内 / 短信 / 电话）；Feed 置顶与标签管理。
+
+### `lark-calendar` — 日历
+
+日程创建 / 更新 / 取消（含重复日程 RRULE）、全天与模糊时间表达、参会人管理与 RSVP 回执、忙闲查询与时段推荐、会议室查找与预定、跨日历日程转移、日程与会议（视频会议）关联。
+
+### `lark-task` — 任务待办
+
+任务创建 / 更新 / 完成 / 重开、子任务拆解与祖先设置、清单（tasklist）增删与成员管理、任务搜索与关联查询、协作成员与关注者、提醒与附件上传、任务智能体注册注销及其主页数据维护。
+
+### `lark-drive` — 云空间
+
+云盘文件的浏览 / 搜索 / 移动 / 复制 / 删除、上传与下载（含导出为 docx/sheet 等格式）、文件夹管理、快捷方式、版本历史；评论与回复（含表情回应）；权限管理（成员增删、设置查询、权限申请）；密级标签；另含多个多步工作流 playbook：知识库归集整理、专题迁移收集器、权限治理。
+
+### `lark-sheets` — 电子表格
+
+工作表与行列结构操作（增删、合并、冻结、分组、隐藏）、单元格读写（值 / 公式 / 样式 / 批注 / 单元格图片）、区域复制移动与排序、数据透视表、条件格式、下拉列表、图表与迷你图、浮动图片、公式校验；Excel / CSV 的导入导出。
+
+### `lark-base` — 多维表格（Bitable）
+
+数据表与字段管理、记录增删改查与批量操作、视图管理、分组 / 筛选 / 排序、公式与 lookup 字段、表单视图、仪表盘、自动化 workflow（含 AI 生成文本 action）、字段扩展（field extension）批量写、角色权限、模板；AppMode（Base 应用）页面与组件；`.base` 文件导入导出。
+
+### `lark-wiki` — 知识库
+
+知识空间列表、节点树浏览与检索、节点创建 / 移动 / 复制 / 删除、空间成员管理；以及「wiki URL → 底层对象 token」的路由规则（打开 `/wiki/` 链接时先解包成 docx/sheet/bitable 再路由到对应技能）。
+
+> 技能目录同时通过 `resourceBase` 暴露给模型，正文里的 `references/...` 可按相对路径读取。
 
 ## 测试
 

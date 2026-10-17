@@ -19,13 +19,57 @@ The plugin never logs in and never stores appId / appSecret.
 
 ## Install
 
+Three install options — pick one; after any of them, finish wiring with "[Mount into a profile](#mount-into-a-profile)".
+
+### Option 1: one-shot build from the GitHub link (recommended)
+
+Clone and build straight from GitHub, no prior local copy needed:
+
 ```bash
-cd D:/Code/projects/dsh-lark-cli
-npm install          # only typescript and @types/node; skip when already present
+git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
+cd dsh-lark-cli
+npm install          # only typescript and @types/node
 npm run build        # produces dist/
 ```
 
-Wire it into a profile (`web` shown here):
+Or register the GitHub repo directly as a dependency (pnpm supports Git links):
+
+```bash
+# inside ~/.dsh/profiles/web
+pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#main
+```
+
+### Option 2: build from source
+
+Best when you plan to modify skills or source locally:
+
+```bash
+git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
+cd dsh-lark-cli
+npm install
+npm run build
+```
+
+Then point the profile at your local directory with `link:` (see "Mount into a profile"); local edits take effect immediately with no re-publish.
+
+### Option 3: prompt-driven install (let the AI session do it)
+
+Paste this into a dsh chat and the model performs the install for you:
+
+```text
+Please install the dsh-lark-cli plugin for me:
+1. Clone https://github.com/aminuoshi-378/dsh-lark locally;
+2. Run npm install && npm run build in the repo;
+3. Following the README "Mount into a profile" section, wire the plugin into
+   ~/.dsh/profiles/web (package.json dependency + bundle + cordis.patch.yml);
+4. Run dsh --profile web --dump-config and verify the lark-cli entry appears.
+```
+
+The model executes each step with its shell tool; writes to profile config files are outside the workspace, so it will ask for your approval first.
+
+## Mount into a profile
+
+After building via any option, mount the plugin into a profile (`web` shown here):
 
 1. `~/.dsh/profiles/web/package.json`
    - add `"dsh-lark-cli": "link:D:/Code/projects/dsh-lark-cli"` to `dependencies`
@@ -77,19 +121,45 @@ Every field is volatile: a config change applies to the next call without a rest
 
 ## Skills
 
-| Skill | Covers |
-|---|---|
-| `lark-shared` | Identity, auth, output contract, high-risk approval, **the dsh execution-channel rules** |
-| `lark-doc` | Docs read/write, media, mind notes |
-| `lark-im` | Messages, chats, cards, urgent pings |
-| `lark-calendar` | Events, attendees, meeting rooms |
-| `lark-task` | Tasks, task lists, task agents |
-| `lark-drive` | Drive files, permissions, import/export |
-| `lark-sheets` | Sheets structure, cells, charts, pivot tables |
-| `lark-base` | Bitable, views, forms, dashboards |
-| `lark-wiki` | Wiki spaces, node trees, wiki members |
+Nine skills ship with the plugin; the model loads the relevant one per task. Each skill directory also carries `references/` sub-documents (read on demand by relative path) with finer-grained command syntax and scenario playbooks.
 
-Each skill's directory is exposed through `resourceBase`, so `references/...` links resolve by relative path.
+### `lark-shared` — shared rules & auth (required reading)
+
+The common foundation for every Feishu operation: identity selection (`--as user` vs `--as bot`), auth and login-state troubleshooting, the JSON output contract, the high-risk write confirmation gate, and the key "**in dsh**" execution rule — no shell here; every `lark-cli` command is split into `lark_cli` tool `argv` (how to rewrite pipes / `&&` / redirections, and how to filter with `--jq`). The model reads this skill before using any other lark skill.
+
+### `lark-doc` — cloud docs / Docx
+
+Create, read, and update docs (including the XML block-level structure), Markdown round-trip, version history; insert and download images/attachments; mind notes; whiteboards; a dozen writing-genre templates (PRD, weekly report, meeting minutes, Xiaohongshu, official letters, research reports, ... in `references/genres/`); plus create-then-run-workflow combos.
+
+### `lark-im` — messaging
+
+Send / reply / edit / unsend semantics for DMs and group messages; message and chat search; group members, settings, and topic groups; interactive cards (full Card 2.0 component schema: buttons, forms, charts, columns, images, ...); reactions; urgent pings (in-app / SMS / phone call); feed pins and tag management.
+
+### `lark-calendar` — calendar
+
+Event create / update / cancel (including recurring RRULE events), all-day and fuzzy time expressions, attendee management and RSVP, free/busy queries and slot suggestions, meeting-room search and booking, cross-calendar event transfer, event-to-meeting (video conference) relations.
+
+### `lark-task` — tasks
+
+Task create / update / complete / reopen, subtask decomposition and ancestor setting, tasklist management and members, task search and related-task queries, collaborators and followers, reminders and attachment upload, task-agent registration/unregistration and homepage data.
+
+### `lark-drive` — drive
+
+Browse / search / move / copy / delete files, upload and download (including export to docx/sheet formats), folders, shortcuts, version history; comments and replies (with reactions); permissions (member management, settings, permission requests); secure labels; plus several multi-step playbooks: knowledge organization, topic-move collectors, permission governance.
+
+### `lark-sheets` — spreadsheets
+
+Sheet and row/column structure (add/remove, merge, freeze, group, hide), cell read/write (values / formulas / styles / comments / in-cell images), range copy-move-sort, pivot tables, conditional formatting, dropdowns, charts and sparklines, floating images, formula validation; Excel / CSV import and export.
+
+### `lark-base` — Bitable
+
+Data tables and fields, record CRUD and batch operations, views, grouping / filtering / sorting, formula and lookup fields, form views, dashboards, automation workflows (including the AI text-generation action), field-extension bulk writes, roles and permissions, templates; AppMode (Base app) pages and components; `.base` file import/export.
+
+### `lark-wiki` — knowledge base
+
+Wiki space list, node tree browsing and search, node create / move / copy / delete, space member management; plus the "wiki URL → underlying object token" routing rule (a `/wiki/` link is unwrapped to a docx/sheet/bitable and routed to the matching skill).
+
+> Each skill's directory is exposed through `resourceBase`, so `references/...` links resolve by relative path.
 
 ## Tests
 
