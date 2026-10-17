@@ -41,98 +41,83 @@
 
 ## 安装
 
-四种安装方式都是**一步到位**：在 `~/.dsh/profiles/web` 目录里执行完对应命令，依赖登记、构建产物落位、node_modules 解析自动完成，之后只需在 `cordis.patch.yml` 加一行注册并重启。区别只在包来源：git 仓库、GitHub 直链、Release tarball、或让模型代办。
+**推荐用 dsh 自带的插件管理命令安装**：它会自动完成依赖登记、`dsh.profile.bundles` 注册、`cordis.yml` 配置合并——三步接线全自动，装完重启即可用。以下命令在任何目录执行都可以（`--profile` 已指明目标 profile，示例为 `web`）。
 
-以下命令若无特别说明，都在 `~/.dsh/profiles/web` 目录下执行。
-
-### 方式一：git 依赖安装（推荐）
-
-在 profile 的 `package.json` 里把仓库登记为 git 依赖：
+### 方式一：Release tarball 安装（推荐）
 
 ```bash
-cd ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
+dsh plugin --profile web add https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
 ```
 
-> 命令解析：`dsh-lark-cli` 是包名（须与仓库 `package.json` 的 `name` 一致）；`@github:用户名/仓库#v0.1.0` 指定从 GitHub 安装（`#` 后可写 tag 或分支，如 `#v0.1.0`、`#main`）。pnpm 会浅克隆 → 执行包内 `prepare` 脚本（自动 tsc 构建出 `dist/`）→ 把 `files` 声明的 `dist / cordis.yml / skills` 装进 profile 的 `node_modules`。
->
-> `#v0.1.0` 锁定版本，`#main` 跟踪最新代码；锁定版本更稳，推荐。
+把 `v0.1.0` 换成目标版本号；各版本地址见 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页。安装时若 pnpm 提示需要允许构建脚本，把打印出的 key 按提示加进 profile 的 `pnpm-workspace.yaml` 的 `allowBuilds` 再重跑一次（详见下文「允许构建脚本」）。
 
-### 方式二：Release tarball 安装
-
-不装 git 也能装：直接把 Release tarball 的下载地址作为 tarball 依赖登记，pnpm 会下载、解压、自动构建、落位 `node_modules`，一步完成：
+### 方式二：git 仓库安装
 
 ```bash
-cd ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+dsh plugin --profile web add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
 ```
 
-（把 `v0.1.0` 换成目标版本号；各版本地址见 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页。手动下载解压再 `npm install` 也可以，但上面这条命令更省事。）
+`#` 后可写 tag（`#v0.1.0`，锁定版本，推荐）或分支（`#main`，跟踪最新）。git 来源**必须**按「允许构建脚本」一节放行 `prepare`，否则装出来没有 `dist/`。
+
+### 允许构建脚本（git / tarball 来源需要）
+
+pnpm 默认禁止依赖在安装时执行脚本（含本包自动构建的 `prepare`）。安装时 pnpm 会打印需要放行的 key，把它加进 `~/.dsh/profiles/web/pnpm-workspace.yaml`：
+
+```yaml
+allowBuilds:
+  dsh-lark-cli: true
+```
+
+然后重跑同一条 `dsh plugin ... add` 命令即可。
 
 ### 方式三：本地源码 link 安装
 
-适合需要修改技能或源码的场景——先把仓库拉到本地构建，再用 `link:` 指向它：
+适合需要修改技能或源码的场景：
 
 ```bash
 git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
 cd dsh-lark-cli
 npm install && npm run build
 
-# 回到 profile 目录登记
-cd ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@link:<上面的克隆目录绝对路径>
+dsh plugin --profile web add "link:D:/Code/projects/dsh-lark-cli"   # 换成你的克隆目录
 ```
 
-`link:` 依赖指向本地目录，改源码或技能即时生效（重启 `dsh web` 后），无需重新发布。
+本地改动即时生效（重启 `dsh web` 后），无需重新发布。
 
 ### 方式四：Prompt 安装（让 AI 会话代为执行）
 
-把下面这段话直接发给 dsh 会话里的模型，由它代为完成安装（默认走方式一的 git 依赖，最省事）：
+把下面这段话发给 dsh 会话里的模型：
 
 ```text
 请帮我安装 dsh-lark-cli 插件：
-1. 在 ~/.dsh/profiles/web 下执行 pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0；
-2. 按 README「挂载进 profile」一节，在 cordis.patch.yml 追加 lark-cli 注册条目；
-3. 执行 dsh --profile web --dump-config 验证出现 lark-cli 条目。
+1. 执行 dsh plugin --profile web add https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+2. 若 pnpm 要求允许构建脚本，按输出提示把 key 加进 ~/.dsh/profiles/web/pnpm-workspace.yaml 的 allowBuilds 后重跑；
+3. 重启 dsh web 后执行 dsh --profile web --dump-config 验证出现 lark-cli 条目。
 ```
 
-模型会调用它的 shell 工具逐步执行；涉及 profile 配置文件的修改属于工作区外写入，模型会先向你请求批准。
+模型会调用它的 shell 工具逐步执行。
 
-## 挂载进 profile
+### 验证安装成功
 
-方式一 / 二 / 四执行完 pnpm add 后，包已经装进 `~/.dsh/profiles/web/node_modules/dsh-lark-cli`，只剩最后一步注册；方式三因为用了 `link:`，`pnpm add` 已同时完成登记与链接。两种情况的收尾相同：
-
-1. `~/.dsh/profiles/web/package.json` 的 `dsh.profile.bundles` 追加 `"dsh-lark-cli"`（pnpm add 已自动写好 `dependencies`，无需手改）。
-2. `~/.dsh/profiles/web/cordis.patch.yml` 追加：
-
-```yaml
-- id: lark-cli
-  name: 'dsh-lark-cli'
-  config:
-    executable: lark-cli
-    timeoutMs: 60000
+```bash
+dsh --profile web --dump-config | grep lark-cli   # 能看到 lark-cli 条目
 ```
 
-3. 重启 `dsh web`。验收：启动无 `did not activate` 告警；`dsh --profile web --dump-config | grep lark-cli` 能看到该行。
+重启 `dsh web` 后，启动日志无 `did not activate` 告警，会话里就能用 `lark_cli` 工具和九个 `lark-*` 技能了。
 
-回滚：`pnpm remove dsh-lark-cli`、删掉 bundles 里那一项与 cordis.patch.yml 那一段并重启。
+回滚：`dsh plugin --profile web remove dsh-lark-cli`（bundles 会同步清理），再删掉 cordis.patch.yml 里对应的 id 行并重启。
 
 ## 升级到新版本
 
-发布新版本时，按你当初的安装方式更新即可；`cordis.patch.yml` 注册与 bundles 声明无需改动，更新后重启 `dsh web` 生效。
+发布新版本时，按你当初的安装方式更新即可；`cordis.patch.yml` 注册无需改动，更新后重启 `dsh web` 生效。
 
-**方式一（git 依赖）**：把版本号换成新的重新 add（或临时跟踪 main）：
+**方式一（tarball）**：把地址里的版本号换成新的重新 add。
 
-```bash
-cd ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#<新版本tag>
-```
-
-**方式二（tarball）**：把地址里的版本号换成新的重新 `pnpm add`。
+**方式二（git 仓库）**：把 tag 换成新的重新 add（或临时用 `#main` 跟踪最新）。
 
 **方式三（link 源码）**：进入克隆目录 `git pull && npm install && npm run build`，重启 `dsh web`。
 
-方式四的升级同样把对应命令发给模型代执行即可。**查看当前版本**：看 profile 的 `package.json` 里 `dsh-lark-cli` 的依赖描述，或 `node_modules/dsh-lark-cli/package.json` 的 `version` 字段；新版本说明见 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页。升级后建议在插件目录跑一次 `npm test` 确认环境正常。
+方式四的升级把对应命令发给模型代执行即可。**查看当前版本**：看 `~/.dsh/profiles/web/package.json` 里 `dsh-lark-cli` 的依赖描述，或 `node_modules/dsh-lark-cli/package.json` 的 `version` 字段；新版本说明见 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页。升级后建议在插件目录跑一次 `npm test` 确认环境正常。
 
 ## 技能清单
 

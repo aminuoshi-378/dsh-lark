@@ -41,100 +41,85 @@ The plugin never logs in and never stores appId / appSecret.
 
 ## Install
 
-All four install options are **one-shot**: run the command inside `~/.dsh/profiles/web` and dependency registration, build artifacts, and node_modules resolution all happen at once — afterwards only one registration line in `cordis.patch.yml` plus a restart is needed. The options differ only in package source: git repo, GitHub URL, Release tarball, or model-delegated.
+**Use dsh's built-in plugin manager** — it automatically registers the dependency, appends the entry to `dsh.profile.bundles`, and merges the `cordis.yml` config, so no manual wiring is needed; restart after install and you're done. Run the commands from any directory (`--profile` names the target profile, `web` in the examples).
 
-Unless noted, run the commands inside `~/.dsh/profiles/web`.
-
-### Option 1: git dependency (recommended)
-
-Register the repo as a git dependency in the profile:
+### Option 1: Release tarball (recommended)
 
 ```bash
-cd ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
+dsh plugin --profile web add https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
 ```
 
-> How it parses: `dsh-lark-cli` is the package name (must match the repo's `package.json` `name`); `@github:user/repo#v0.1.0` installs from GitHub (`#` takes a tag or branch: `#v0.1.0`, `#main`). pnpm shallow-clones → runs the package's `prepare` script (auto-builds `dist/` via tsc) → installs what `files` declares (`dist / cordis.yml / skills`) into the profile's `node_modules`.
->
-> `#v0.1.0` pins a version; `#main` tracks the latest code. Pinning is recommended.
+Replace `v0.1.0` with the target version; per-release URLs are on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. If pnpm asks to allow build scripts, add the printed key under `allowBuilds` in the profile's `pnpm-workspace.yaml` and re-run (see "Allowing build scripts" below).
 
-### Option 2: Release tarball
-
-No git needed — register the Release tarball URL directly as a tarball dependency; pnpm downloads, unpacks, auto-builds, and places it into `node_modules` in one step:
+### Option 2: git repository
 
 ```bash
-cd ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+dsh plugin --profile web add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
 ```
 
-(Replace `v0.1.0` with the target version; URLs per release are on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. Manually downloading, unpacking, and running `npm install` also works, but the one-liner is easier.)
+`#` takes a tag (`#v0.1.0`, pinned — recommended) or a branch (`#main`, tracks latest). Git-hosted sources **must** allow build scripts per the section below, or the install yields no `dist/`.
+
+### Allowing build scripts (needed for git / tarball sources)
+
+pnpm blocks dependency install scripts by default (including this package's auto-build `prepare`). During install, pnpm prints the key to allow; add it to `~/.dsh/profiles/web/pnpm-workspace.yaml`:
+
+```yaml
+allowBuilds:
+  dsh-lark-cli: true
+```
+
+Then re-run the same `dsh plugin ... add` command.
 
 ### Option 3: local source via link
 
-Best when you plan to modify skills or source — clone and build first, then point the profile at it:
+Best when you plan to modify skills or source:
 
 ```bash
 git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
 cd dsh-lark-cli
 npm install && npm run build
 
-# back in the profile directory
-cd ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@link:<absolute path of the clone>
+dsh plugin --profile web add "link:D:/Code/projects/dsh-lark-cli"   # your clone path
 ```
 
-A `link:` dependency points at the local directory, so source/skill edits take effect immediately (after restarting `dsh web`) with no re-publish.
+Local edits take effect immediately (after restarting `dsh web`) with no re-publish.
 
 ### Option 4: prompt-driven install (let the AI session do it)
 
-Paste this into a dsh chat and the model performs the install for you (defaults to Option 1's git dependency — the easiest path):
+Paste this into a dsh chat:
 
 ```text
 Please install the dsh-lark-cli plugin for me:
-1. Inside ~/.dsh/profiles/web run
-   pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
-2. Following the README "Mount into a profile" section, append the lark-cli
-   entry to cordis.patch.yml;
-3. Run dsh --profile web --dump-config and verify the lark-cli entry appears.
+1. Run dsh plugin --profile web add https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+2. If pnpm asks to allow build scripts, add the printed key to allowBuilds in
+   ~/.dsh/profiles/web/pnpm-workspace.yaml and re-run;
+3. Restart dsh web, then run dsh --profile web --dump-config and verify the
+   lark-cli entry appears.
 ```
 
-The model executes each step with its shell tool; writes to profile config files are outside the workspace, so it will ask for your approval first.
+The model executes each step with its shell tool.
 
-## Mount into a profile
+### Verify the install
 
-After Options 1 / 2 / 4 the package is already installed at `~/.dsh/profiles/web/node_modules/dsh-lark-cli` — only registration remains; Option 3's `pnpm add` already handled both registration and linking. The finish line is the same either way:
-
-1. Append `"dsh-lark-cli"` to `dsh.profile.bundles` in `~/.dsh/profiles/web/package.json` (pnpm add already wrote the `dependencies` entry — no manual edit needed).
-2. Append to `~/.dsh/profiles/web/cordis.patch.yml`:
-
-```yaml
-- id: lark-cli
-  name: 'dsh-lark-cli'
-  config:
-    executable: lark-cli
-    timeoutMs: 60000
+```bash
+dsh --profile web --dump-config | grep lark-cli   # the lark-cli entry appears
 ```
 
-3. Restart `dsh web`. Verify: no `did not activate` warning on startup, and `dsh --profile web --dump-config | grep lark-cli` shows the entry.
+After restarting `dsh web` with no `did not activate` warning, the `lark_cli` tool and nine `lark-*` skills are available in sessions.
 
-Rollback: `pnpm remove dsh-lark-cli`, remove the bundles entry and the cordis.patch.yml block, then restart.
+Rollback: `dsh plugin --profile web remove dsh-lark-cli` (bundles are cleaned up too), remove the matching id block from cordis.patch.yml, then restart.
 
 ## Upgrading
 
-When a new version is released, update according to how you installed; the `cordis.patch.yml` registration and bundles declaration never need changes — just restart `dsh web` after updating.
+When a new version is released, update according to how you installed; the `cordis.patch.yml` registration never needs changes — just restart `dsh web` after updating.
 
-**Option 1 (git dependency)**: re-add with the new tag (or track main):
+**Option 1 (tarball)**: re-run the add command with the new version in the URL.
 
-```bash
-cd ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#<new tag>
-```
-
-**Option 2 (tarball)**: re-run `pnpm add` with the new version in the URL.
+**Option 2 (git repo)**: re-run the add command with the new tag (or `#main` temporarily to track latest).
 
 **Option 3 (link source)**: in the clone run `git pull && npm install && npm run build`, then restart `dsh web`.
 
-For Option 4, just send the matching command to the model. **Check your version**: look at the `dsh-lark-cli` entry in the profile's `package.json`, or the `version` field of `node_modules/dsh-lark-cli/package.json`; release notes live on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. After upgrading, run `npm test` once in the plugin directory to confirm the environment is healthy.
+For Option 4, just send the matching command to the model. **Check your version**: look at the `dsh-lark-cli` entry in `~/.dsh/profiles/web/package.json`, or the `version` field of `node_modules/dsh-lark-cli/package.json`; release notes live on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. After upgrading, run `npm test` once in the plugin directory to confirm the environment is healthy.
 
 ## Skills
 
