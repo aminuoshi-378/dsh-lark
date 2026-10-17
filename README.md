@@ -41,20 +41,22 @@
 
 ## 安装
 
-三种安装方式任选其一；装好后都需要按「[挂载进 profile](#挂载进-profile)」完成接线。
+四种安装方式任选其一；装好后都需要按「[挂载进 profile](#挂载进-profile)」完成接线。
 
-### 方式一：GitHub 链接一键构建（推荐）
+### 方式一：Release tarball 安装（推荐，零构建）
 
-直接从 GitHub 拉取并构建，不需要本地已有源码：
+从 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页下载对应版本的 Source code (tarball/zip)，解压后**自带构建产物说明**——tarball 内不含 `dist/`，需执行一次安装命令（`prepare` 脚本会自动构建）：
 
 ```bash
-git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
-cd dsh-lark-cli
-npm install          # 只需要 typescript 与 @types/node
-npm run build        # 产出 dist/
+tar -xzf dsh-lark-<版本>.tar.gz && cd aminuoshi-378-dsh-lark-<短哈希>
+npm install          # prepare 脚本自动执行 tsc 构建出 dist/
 ```
 
-或者不克隆，直接把 GitHub 仓库作为依赖登记（pnpm 支持 Git 链接，安装时会自动执行包内的 `prepare` 脚本完成构建，无需手动 build）：
+不想手动操作的话，也可把 Release 链接交给 dsh 会话里的模型，让它下载、解压、安装、接线一条龙完成。
+
+### 方式二：GitHub 链接一键安装
+
+不克隆仓库，直接把 GitHub 仓库作为依赖登记（安装时自动执行包内 `prepare` 脚本完成构建，无需手动 build）：
 
 ```bash
 # 在 ~/.dsh/profiles/web 下
@@ -63,7 +65,7 @@ pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#main
 
 > 命令解析：`dsh-lark-cli` 是包名（须与仓库 `package.json` 的 `name` 一致）；`@github:用户名/仓库#main` 指定从 GitHub 的 `main` 分支安装（`#` 后也可写 tag，如 `#v0.1.0`）。pnpm 会浅克隆该分支 → 执行 `prepare` 脚本（即 `tsc` 构建）→ 把 `files` 声明的 `dist / cordis.yml / skills` 装进 `node_modules`。
 
-### 方式二：源码构建
+### 方式三：源码构建
 
 适合需要本地修改技能或源码的场景：
 
@@ -76,7 +78,7 @@ npm run build
 
 之后在 profile 里用 `link:` 指向本地目录（见「挂载进 profile」），本地改动即时生效，无需重新发布。
 
-### 方式三：Prompt 构建（让 AI 会话代为执行）
+### 方式四：Prompt 安装（让 AI 会话代为执行）
 
 把下面这段话直接发给 dsh 会话里的模型，由它代为完成安装：
 
@@ -92,7 +94,7 @@ npm run build
 
 ## 挂载进 profile
 
-三种方式构建完成后，都需要把插件挂进 profile（示例为 `web`）：
+四种方式构建完成后，都需要把插件挂进 profile（示例为 `web`）：
 
 1. `~/.dsh/profiles/web/package.json`
    - `dependencies` 增加 `"dsh-lark-cli": "link:D:/Code/projects/dsh-lark-cli"`
@@ -116,7 +118,7 @@ npm run build
 
 发布新版本时，按你当初的安装方式更新即可；profile 侧的接线（package.json / bundle / cordis.patch.yml）无需改动，更新后重启 `dsh web` 生效。
 
-**方式一 / 方式三（GitHub 链接安装）**：重新拉取并构建：
+**方式一 / 方式二（GitHub 链接安装）**：重新拉取并构建：
 
 ```bash
 cd dsh-lark-cli          # 或你克隆时用的目录名
@@ -124,9 +126,9 @@ git pull
 npm install && npm run build
 ```
 
-用 `pnpm add dsh-lark-cli@github:...` 安装的，重新执行一次同样的 `pnpm add` 命令即可拉到新版本。也可以直接让 dsh 会话里的模型代为执行（把上面三行命令发给它，或复用 README「方式三：Prompt 构建」的提示词，说明是升级）。
+用 `pnpm add dsh-lark-cli@github:...` 安装的，重新执行一次同样的 `pnpm add` 命令即可拉到新版本。也可以直接让 dsh 会话里的模型代为执行（把上面三行命令发给它，或复用 README「方式四：Prompt 安装」的提示词，说明是升级）。
 
-**方式二（源码构建）**：进入本地仓库 `git pull && npm install && npm run build`，`link:` 指向的目录内容更新后即生效，重启 `dsh web`。
+**方式三（源码构建）**：进入本地仓库 `git pull && npm install && npm run build`，`link:` 指向的目录内容更新后即生效，重启 `dsh web`。
 
 **查看当前版本**：`git describe --tags`（克隆安装）或看 `package.json` 的 `version` 字段；新版本说明见 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页。升级后建议跑一次 `npm test` 确认环境正常。
 

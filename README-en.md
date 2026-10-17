@@ -41,20 +41,22 @@ The plugin never logs in and never stores appId / appSecret.
 
 ## Install
 
-Three install options — pick one; after any of them, finish wiring with "[Mount into a profile](#mount-into-a-profile)".
+Four install options — pick one; after any of them, finish wiring with "[Mount into a profile](#mount-into-a-profile)".
 
-### Option 1: one-shot build from the GitHub link (recommended)
+### Option 1: Release tarball (recommended, zero-clone)
 
-Clone and build straight from GitHub, no prior local copy needed:
+Download the Source code (tarball/zip) for a version from the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page and unpack it. The tarball does not contain `dist/`, so run one install command (the `prepare` script builds automatically):
 
 ```bash
-git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
-cd dsh-lark-cli
-npm install          # only typescript and @types/node
-npm run build        # produces dist/
+tar -xzf dsh-lark-<version>.tar.gz && cd aminuoshi-378-dsh-lark-<short-hash>
+npm install          # the prepare script runs tsc to produce dist/
 ```
 
-Or register the GitHub repo directly as a dependency (pnpm supports Git links; the package's `prepare` script runs the build automatically during install — no manual build needed):
+Alternatively, hand the Release link to the model in a dsh session and let it download, unpack, install, and wire everything up.
+
+### Option 2: one-shot install from the GitHub link
+
+No clone needed — register the GitHub repo directly as a dependency (the package's `prepare` script runs the build automatically during install):
 
 ```bash
 # inside ~/.dsh/profiles/web
@@ -63,7 +65,7 @@ pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#main
 
 > How it parses: `dsh-lark-cli` is the package name (must match the repo's `package.json` `name`); `@github:user/repo#main` installs from the `main` branch on GitHub (`#` can also take a tag, e.g. `#v0.1.0`). pnpm shallow-clones the branch → runs the `prepare` script (the `tsc` build) → installs what `files` declares (`dist / cordis.yml / skills`) into `node_modules`.
 
-### Option 2: build from source
+### Option 3: build from source
 
 Best when you plan to modify skills or source locally:
 
@@ -76,7 +78,7 @@ npm run build
 
 Then point the profile at your local directory with `link:` (see "Mount into a profile"); local edits take effect immediately with no re-publish.
 
-### Option 3: prompt-driven install (let the AI session do it)
+### Option 4: prompt-driven install (let the AI session do it)
 
 Paste this into a dsh chat and the model performs the install for you:
 
@@ -93,7 +95,7 @@ The model executes each step with its shell tool; writes to profile config files
 
 ## Mount into a profile
 
-After building via any option, mount the plugin into a profile (`web` shown here):
+After installing via any option, mount the plugin into a profile (`web` shown here):
 
 1. `~/.dsh/profiles/web/package.json`
    - add `"dsh-lark-cli": "link:D:/Code/projects/dsh-lark-cli"` to `dependencies`
