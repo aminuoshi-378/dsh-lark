@@ -24,7 +24,7 @@
 
 | 项目 | 要求 |
 |---|---|
-| dsh 兼容版本 | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（dsh）近期版本，需支持 `defineTool` / `ctx.subprocess` / `ctx.skills.registerProvider` 插件 API 与 `dsh.profile.bundles` bundle 机制 |
+| dsh 兼容版本 | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（dsh）**≥ 0.2.0-rc.2**（实际验证版本；需支持 `defineTool` / `ctx.subprocess` / `ctx.skills.registerProvider` 插件 API 与 `dsh.profile.bundles` bundle 机制） |
 | 操作系统 | **Windows 10/11**（主要验证平台，内置 `.cmd` shim → `.exe` 自动探测）；**macOS / Linux** 理论可用（`lark-cli` 本身跨平台），未逐一验证 |
 | Node.js | ≥ 22.0.0 |
 | lark-cli | ≥ 1.0.96（`npm install -g @larksuite/cli`） |
