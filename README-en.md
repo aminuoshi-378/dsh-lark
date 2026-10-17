@@ -1,6 +1,16 @@
 # dsh-lark-cli
 
-Feishu / Lark access for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh).
+In one sentence: **let your AI assistant operate Feishu for you directly** — send messages, write docs, check schedules, manage tasks, and work spreadsheets without leaving the chat.
+
+A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plugin for Feishu / Lark access. Once installed, you give instructions in natural language and the model drives the official `lark-cli` through the `lark_cli` tool:
+
+| You say | The model does |
+|---|---|
+| "Send the meeting notes to the product group" | `lark-im` posts the message to the chat |
+| "Write a PRD from this material and save it to Docs" | `lark-doc` creates the doc and fills it in |
+| "What meetings do I have next week" | `lark-calendar` queries your agenda |
+| "Turn the to-dos in this sheet into tasks" | `lark-sheets` reads the data → `lark-task` creates tasks |
+| "Add a page about X to the wiki" | `lark-wiki` creates the node → `lark-doc` writes the content |
 
 Design principle: **the official `lark-cli` does the work, skills teach the model how to drive it** — execution and knowledge are separated.
 

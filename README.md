@@ -1,6 +1,16 @@
 # dsh-lark-cli
 
-为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（dsh）提供飞书 / Lark 访问能力的插件。
+一句话：**让 AI 助手直接替你操作飞书**——发消息、写文档、查日程、管任务、理表格，不用离开对话窗口。
+
+为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（dsh）提供飞书 / Lark 访问能力的插件。安装后，你可以在会话里用自然语言下达指令，模型通过 `lark_cli` 工具调用官方 `lark-cli` 完成实际操作：
+
+| 你说 | 模型做 |
+|---|---|
+| 「把会议纪要发到产品群」 | `lark-im` 发送消息到指定群 |
+| 「按这份材料写篇 PRD 存到云文档」 | `lark-doc` 创建文档并写入 |
+| 「我下周有什么会」 | `lark-calendar` 查询日程 |
+| 「把这张表里的待办整理成任务」 | `lark-sheets` 读数据 → `lark-task` 建任务 |
+| 「给知识库补一页 xx 说明」 | `lark-wiki` 建节点 → `lark-doc` 写内容 |
 
 设计原则：**官方 `lark-cli` 负责执行 + 技能负责教模型怎么用**，执行与知识分离。
 
