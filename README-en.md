@@ -41,34 +41,29 @@ The plugin never logs in and never stores appId / appSecret.
 
 ## Install
 
-**Use dsh's built-in plugin manager** — it automatically registers the dependency, appends the entry to `dsh.profile.bundles`, and merges the `cordis.yml` config, so no manual wiring is needed; restart after install and you're done. Run the commands from any directory (`--profile` names the target profile, `web` in the examples).
+**Use dsh's built-in plugin manager** — it automatically registers the dependency, appends the entry to `dsh.profile.bundles`, and merges the `cordis.yml` config. Run the commands from any directory (`--profile` names the target profile, `web` in the examples).
+
+> This package ships no prebuilt artifacts (`dist/` is generated from source by tsc), so after a tarball / git install you must run `npm install && npm run build` once inside the plugin directory; the link option builds locally before mounting.
 
 ### Option 1: Release tarball (recommended)
 
 ```bash
 dsh plugin --profile web add https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+cd ~/.dsh/profiles/web/node_modules/dsh-lark-cli
+npm install && npm run build
 ```
 
-Replace `v0.1.0` with the target version; per-release URLs are on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. If pnpm asks to allow build scripts, add the printed key under `allowBuilds` in the profile's `pnpm-workspace.yaml` and re-run (see "Allowing build scripts" below).
+Replace `v0.1.0` with the target version; per-release URLs are on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page.
 
 ### Option 2: git repository
 
 ```bash
 dsh plugin --profile web add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
+cd ~/.dsh/profiles/web/node_modules/dsh-lark-cli
+npm install && npm run build
 ```
 
-`#` takes a tag (`#v0.1.0`, pinned — recommended) or a branch (`#main`, tracks latest). Git-hosted sources **must** allow build scripts per the section below, or the install yields no `dist/`.
-
-### Allowing build scripts (needed for git / tarball sources)
-
-pnpm blocks dependency install scripts by default (including this package's auto-build `prepare`). During install, pnpm prints the key to allow; add it to `~/.dsh/profiles/web/pnpm-workspace.yaml`:
-
-```yaml
-allowBuilds:
-  dsh-lark-cli: true
-```
-
-Then re-run the same `dsh plugin ... add` command.
+`#` takes a tag (`#v0.1.0`, pinned — recommended) or a branch (`#main`, tracks latest).
 
 ### Option 3: local source via link
 
@@ -79,7 +74,7 @@ git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
 cd dsh-lark-cli
 npm install && npm run build
 
-dsh plugin --profile web add "link:D:/Code/projects/dsh-lark-cli"   # your clone path
+dsh plugin --profile web add "link:<your-clone-path>"   # e.g. link:D:/dev/dsh-lark
 ```
 
 Local edits take effect immediately (after restarting `dsh web`) with no re-publish.
@@ -91,8 +86,7 @@ Paste this into a dsh chat:
 ```text
 Please install the dsh-lark-cli plugin for me:
 1. Run dsh plugin --profile web add https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
-2. If pnpm asks to allow build scripts, add the printed key to allowBuilds in
-   ~/.dsh/profiles/web/pnpm-workspace.yaml and re-run;
+2. Inside ~/.dsh/profiles/web/node_modules/dsh-lark-cli run npm install && npm run build
 3. Restart dsh web, then run dsh --profile web --dump-config and verify the
    lark-cli entry appears.
 ```

@@ -41,34 +41,29 @@
 
 ## 安装
 
-**推荐用 dsh 自带的插件管理命令安装**：它会自动完成依赖登记、`dsh.profile.bundles` 注册、`cordis.yml` 配置合并——三步接线全自动，装完重启即可用。以下命令在任何目录执行都可以（`--profile` 已指明目标 profile，示例为 `web`）。
+**推荐用 dsh 自带的插件管理命令安装**：它会自动完成依赖登记、`dsh.profile.bundles` 注册、`cordis.yml` 配置合并——三步接线全自动。以下命令在任何目录执行都可以（`--profile` 已指明目标 profile，示例为 `web`）。
+
+> 本包不含预构建产物（`dist/` 由 tsc 从源码生成），所以 tarball / git 来源安装后需要到插件目录执行一次 `npm install && npm run build`；link 来源在挂载前就要完成本地构建。
 
 ### 方式一：Release tarball 安装（推荐）
 
 ```bash
 dsh plugin --profile web add https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+cd ~/.dsh/profiles/web/node_modules/dsh-lark-cli
+npm install && npm run build
 ```
 
-把 `v0.1.0` 换成目标版本号；各版本地址见 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页。安装时若 pnpm 提示需要允许构建脚本，把打印出的 key 按提示加进 profile 的 `pnpm-workspace.yaml` 的 `allowBuilds` 再重跑一次（详见下文「允许构建脚本」）。
+把 `v0.1.0` 换成目标版本号；各版本地址见 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页。
 
 ### 方式二：git 仓库安装
 
 ```bash
 dsh plugin --profile web add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
+cd ~/.dsh/profiles/web/node_modules/dsh-lark-cli
+npm install && npm run build
 ```
 
-`#` 后可写 tag（`#v0.1.0`，锁定版本，推荐）或分支（`#main`，跟踪最新）。git 来源**必须**按「允许构建脚本」一节放行 `prepare`，否则装出来没有 `dist/`。
-
-### 允许构建脚本（git / tarball 来源需要）
-
-pnpm 默认禁止依赖在安装时执行脚本（含本包自动构建的 `prepare`）。安装时 pnpm 会打印需要放行的 key，把它加进 `~/.dsh/profiles/web/pnpm-workspace.yaml`：
-
-```yaml
-allowBuilds:
-  dsh-lark-cli: true
-```
-
-然后重跑同一条 `dsh plugin ... add` 命令即可。
+`#` 后可写 tag（`#v0.1.0`，锁定版本，推荐）或分支（`#main`，跟踪最新）。
 
 ### 方式三：本地源码 link 安装
 
@@ -79,7 +74,7 @@ git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
 cd dsh-lark-cli
 npm install && npm run build
 
-dsh plugin --profile web add "link:D:/Code/projects/dsh-lark-cli"   # 换成你的克隆目录
+dsh plugin --profile web add "link:<你的克隆目录>"   # 例如 link:D:/dev/dsh-lark
 ```
 
 本地改动即时生效（重启 `dsh web` 后），无需重新发布。
@@ -91,7 +86,7 @@ dsh plugin --profile web add "link:D:/Code/projects/dsh-lark-cli"   # 换成你�
 ```text
 请帮我安装 dsh-lark-cli 插件：
 1. 执行 dsh plugin --profile web add https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
-2. 若 pnpm 要求允许构建脚本，按输出提示把 key 加进 ~/.dsh/profiles/web/pnpm-workspace.yaml 的 allowBuilds 后重跑；
+2. 在 ~/.dsh/profiles/web/node_modules/dsh-lark-cli 里执行 npm install && npm run build；
 3. 重启 dsh web 后执行 dsh --profile web --dump-config 验证出现 lark-cli 条目。
 ```
 
