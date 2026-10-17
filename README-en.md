@@ -20,6 +20,16 @@ Design principle: **the official `lark-cli` does the work, skills teach the mode
 - **Nine skills**: `lark-shared`, `lark-doc`, `lark-im`, `lark-calendar`, `lark-task`, `lark-drive`, `lark-sheets`, `lark-base`, `lark-wiki`, shipped with the plugin and loaded on demand.
 - **Zero credentials in the plugin**: login state and secrets stay with `lark-cli` (`~/.lark-cli/config.json` plus the system keychain). Nothing is stored or forwarded here.
 
+## Requirements
+
+| Item | Requirement |
+|---|---|
+| dsh compatibility | A recent [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) build with the `defineTool` / `ctx.subprocess` / `ctx.skills.registerProvider` plugin APIs and the `dsh.profile.bundles` bundle mechanism |
+| Operating system | **Windows 10/11** (primary verified platform, with built-in `.cmd` shim → `.exe` auto-detection); **macOS / Linux** should work (`lark-cli` itself is cross-platform) but are not individually verified |
+| Node.js | >= 22.0.0 |
+| lark-cli | >= 1.0.96 (`npm install -g @larksuite/cli`) |
+| Network | Access to the Feishu OpenAPI endpoints |
+
 ## Prerequisites
 
 1. `lark-cli` >= 1.0.96 installed: `npm install -g @larksuite/cli`.

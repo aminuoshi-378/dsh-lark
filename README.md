@@ -20,6 +20,16 @@
 - **九个技能**：`lark-shared`、`lark-doc`、`lark-im`、`lark-calendar`、`lark-task`、`lark-drive`、`lark-sheets`、`lark-base`、`lark-wiki`，随插件分发，模型按需加载。
 - **零凭据配置**：登录态与密钥都由 `lark-cli` 自己管（`~/.lark-cli/config.json` + 系统 keychain），插件不存、不转发任何 token。
 
+## 环境要求
+
+| 项目 | 要求 |
+|---|---|
+| dsh 兼容版本 | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（dsh）近期版本，需支持 `defineTool` / `ctx.subprocess` / `ctx.skills.registerProvider` 插件 API 与 `dsh.profile.bundles` bundle 机制 |
+| 操作系统 | **Windows 10/11**（主要验证平台，内置 `.cmd` shim → `.exe` 自动探测）；**macOS / Linux** 理论可用（`lark-cli` 本身跨平台），未逐一验证 |
+| Node.js | ≥ 22.0.0 |
+| lark-cli | ≥ 1.0.96（`npm install -g @larksuite/cli`） |
+| 网络 | 可访问飞书 OpenAPI 与 `open.feishu.cn` |
+
 ## 前置条件
 
 1. 已安装 `lark-cli` ≥ 1.0.96：`npm install -g @larksuite/cli`。

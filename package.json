@@ -2,6 +2,7 @@
   "name": "dsh-lark-cli",
   "version": "0.1.0",
   "description": "DeepSeek Harness plugin that exposes the official lark-cli (Feishu/Lark) as a lark_cli tool plus bundled lark-* skills",
+  "license": "MIT",
   "keywords": [
     "dsh",
     "dsh-plugin",
