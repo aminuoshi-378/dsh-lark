@@ -110,6 +110,24 @@ npm run build
 
 回滚：删掉上面三处改动并重启，插件仓库与工作区不受影响。
 
+## 升级到新版本
+
+发布新版本时，按你当初的安装方式更新即可；profile 侧的接线（package.json / bundle / cordis.patch.yml）无需改动，更新后重启 `dsh web` 生效。
+
+**方式一 / 方式三（GitHub 链接安装）**：重新拉取并构建：
+
+```bash
+cd dsh-lark-cli          # 或你克隆时用的目录名
+git pull
+npm install && npm run build
+```
+
+用 `pnpm add dsh-lark-cli@github:...` 安装的，重新执行一次同样的 `pnpm add` 命令即可拉到新版本。也可以直接让 dsh 会话里的模型代为执行（把上面三行命令发给它，或复用 README「方式三：Prompt 构建」的提示词，说明是升级）。
+
+**方式二（源码构建）**：进入本地仓库 `git pull && npm install && npm run build`，`link:` 指向的目录内容更新后即生效，重启 `dsh web`。
+
+**查看当前版本**：`git describe --tags`（克隆安装）或看 `package.json` 的 `version` 字段；新版本说明见 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页。升级后建议跑一次 `npm test` 确认环境正常。
+
 ## 技能清单
 
 插件随包分发九个技能，模型按当前任务自动加载对应技能；每个技能目录下还有 `references/` 细分文档（按相对路径按需读取），覆盖更细的命令语法与场景 playbook。

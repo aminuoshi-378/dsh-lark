@@ -111,6 +111,24 @@ After building via any option, mount the plugin into a profile (`web` shown here
 
 Rollback: remove the three changes above and restart. The plugin repository and workspace are unaffected.
 
+## Upgrading
+
+When a new version is released, update according to how you installed; the profile wiring (package.json / bundle / cordis.patch.yml) never needs changes — just restart `dsh web` after updating.
+
+**Option 1 / Option 3 (GitHub link install)**: pull and rebuild:
+
+```bash
+cd dsh-lark-cli          # or whatever you named the clone
+git pull
+npm install && npm run build
+```
+
+If you installed via `pnpm add dsh-lark-cli@github:...`, run the same `pnpm add` command again to fetch the new version. You can also have the model in a dsh session do it for you (paste the commands above, or reuse the "Option 3: prompt-driven install" prompt, saying it's an upgrade).
+
+**Option 2 (source build)**: in your local repo run `git pull && npm install && npm run build`; since the profile points at the directory via `link:`, the update takes effect after restarting `dsh web`.
+
+**Check your version**: `git describe --tags` (clone install) or the `version` field in `package.json`; release notes live on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. After upgrading, run `npm test` once to confirm the environment is healthy.
+
 ## Skills
 
 Nine skills ship with the plugin; the model loads the relevant one per task. Each skill directory also carries `references/` sub-documents (read on demand by relative path) with finer-grained command syntax and scenario playbooks.
