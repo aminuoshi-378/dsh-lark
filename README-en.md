@@ -41,69 +41,71 @@ The plugin never logs in and never stores appId / appSecret.
 
 ## Install
 
-Four install options — pick one; after any of them, finish wiring with "[Mount into a profile](#mount-into-a-profile)".
+All four install options are **one-shot**: run the command inside `~/.dsh/profiles/web` and dependency registration, build artifacts, and node_modules resolution all happen at once — afterwards only one registration line in `cordis.patch.yml` plus a restart is needed. The options differ only in package source: git repo, GitHub URL, Release tarball, or model-delegated.
 
-### Option 1: Release tarball (recommended, zero-clone)
+Unless noted, run the commands inside `~/.dsh/profiles/web`.
 
-Download the Source code (tar.gz) for a version from the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page, or fetch it directly (replace `v0.1.0` with the target version):
+### Option 1: git dependency (recommended)
 
-```bash
-curl -LO https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
-tar -xzf v0.1.0.tar.gz              # unpacks to dsh-lark-0.1.0/
-cd dsh-lark-0.1.0
-npm install                          # the prepare script runs tsc to produce dist/
-```
-
-Alternatively, hand the Release link to the model in a dsh session and let it download, unpack, install, and wire everything up.
-
-### Option 2: one-shot install from the GitHub link
-
-No clone needed — register the GitHub repo directly as a dependency (the package's `prepare` script runs the build automatically during install):
+Register the repo as a git dependency in the profile:
 
 ```bash
-# inside ~/.dsh/profiles/web
-pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#main
+cd ~/.dsh/profiles/web
+pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
 ```
 
-> How it parses: `dsh-lark-cli` is the package name (must match the repo's `package.json` `name`); `@github:user/repo#main` installs from the `main` branch on GitHub (`#` can also take a tag, e.g. `#v0.1.0`). pnpm shallow-clones the branch → runs the `prepare` script (the `tsc` build) → installs what `files` declares (`dist / cordis.yml / skills`) into `node_modules`.
+> How it parses: `dsh-lark-cli` is the package name (must match the repo's `package.json` `name`); `@github:user/repo#v0.1.0` installs from GitHub (`#` takes a tag or branch: `#v0.1.0`, `#main`). pnpm shallow-clones → runs the package's `prepare` script (auto-builds `dist/` via tsc) → installs what `files` declares (`dist / cordis.yml / skills`) into the profile's `node_modules`.
+>
+> `#v0.1.0` pins a version; `#main` tracks the latest code. Pinning is recommended.
 
-### Option 3: build from source
+### Option 2: Release tarball
 
-Best when you plan to modify skills or source locally:
+No git needed — register the Release tarball URL directly as a tarball dependency; pnpm downloads, unpacks, auto-builds, and places it into `node_modules` in one step:
+
+```bash
+cd ~/.dsh/profiles/web
+pnpm add dsh-lark-cli@https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+```
+
+(Replace `v0.1.0` with the target version; URLs per release are on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. Manually downloading, unpacking, and running `npm install` also works, but the one-liner is easier.)
+
+### Option 3: local source via link
+
+Best when you plan to modify skills or source — clone and build first, then point the profile at it:
 
 ```bash
 git clone https://github.com/aminuoshi-378/dsh-lark.git dsh-lark-cli
 cd dsh-lark-cli
-npm install
-npm run build
+npm install && npm run build
+
+# back in the profile directory
+cd ~/.dsh/profiles/web
+pnpm add dsh-lark-cli@link:<absolute path of the clone>
 ```
 
-Then point the profile at your local directory with `link:` (see "Mount into a profile"); local edits take effect immediately with no re-publish.
+A `link:` dependency points at the local directory, so source/skill edits take effect immediately (after restarting `dsh web`) with no re-publish.
 
 ### Option 4: prompt-driven install (let the AI session do it)
 
-Paste this into a dsh chat and the model performs the install for you:
+Paste this into a dsh chat and the model performs the install for you (defaults to Option 1's git dependency — the easiest path):
 
 ```text
 Please install the dsh-lark-cli plugin for me:
-1. Clone https://github.com/aminuoshi-378/dsh-lark locally;
-2. Run npm install && npm run build in the repo;
-3. Following the README "Mount into a profile" section, wire the plugin into
-   ~/.dsh/profiles/web (package.json dependency + bundle + cordis.patch.yml);
-4. Run dsh --profile web --dump-config and verify the lark-cli entry appears.
+1. Inside ~/.dsh/profiles/web run
+   pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#v0.1.0
+2. Following the README "Mount into a profile" section, append the lark-cli
+   entry to cordis.patch.yml;
+3. Run dsh --profile web --dump-config and verify the lark-cli entry appears.
 ```
 
 The model executes each step with its shell tool; writes to profile config files are outside the workspace, so it will ask for your approval first.
 
 ## Mount into a profile
 
-After installing via any option, mount the plugin into a profile (`web` shown here):
+After Options 1 / 2 / 4 the package is already installed at `~/.dsh/profiles/web/node_modules/dsh-lark-cli` — only registration remains; Option 3's `pnpm add` already handled both registration and linking. The finish line is the same either way:
 
-1. `~/.dsh/profiles/web/package.json`
-   - add `"dsh-lark-cli": "link:D:/Code/projects/dsh-lark-cli"` to `dependencies`
-   - append `"dsh-lark-cli"` to `dsh.profile.bundles`
-2. `~/.dsh/profiles/web/node_modules/dsh-lark-cli` must point at this repository (`pnpm install` creates it; otherwise create a directory link / junction yourself).
-3. Append to `~/.dsh/profiles/web/cordis.patch.yml`:
+1. Append `"dsh-lark-cli"` to `dsh.profile.bundles` in `~/.dsh/profiles/web/package.json` (pnpm add already wrote the `dependencies` entry — no manual edit needed).
+2. Append to `~/.dsh/profiles/web/cordis.patch.yml`:
 
 ```yaml
 - id: lark-cli
@@ -113,27 +115,26 @@ After installing via any option, mount the plugin into a profile (`web` shown he
     timeoutMs: 60000
 ```
 
-4. Restart `dsh web`. Verify: no `did not activate` warning on startup, and `dsh --profile web --dump-config | grep lark-cli` shows the entry.
+3. Restart `dsh web`. Verify: no `did not activate` warning on startup, and `dsh --profile web --dump-config | grep lark-cli` shows the entry.
 
-Rollback: remove the three changes above and restart. The plugin repository and workspace are unaffected.
+Rollback: `pnpm remove dsh-lark-cli`, remove the bundles entry and the cordis.patch.yml block, then restart.
 
 ## Upgrading
 
-When a new version is released, update according to how you installed; the profile wiring (package.json / bundle / cordis.patch.yml) never needs changes — just restart `dsh web` after updating.
+When a new version is released, update according to how you installed; the `cordis.patch.yml` registration and bundles declaration never need changes — just restart `dsh web` after updating.
 
-**Option 1 / Option 3 (GitHub link install)**: pull and rebuild:
+**Option 1 (git dependency)**: re-add with the new tag (or track main):
 
 ```bash
-cd dsh-lark-cli          # or whatever you named the clone
-git pull
-npm install && npm run build
+cd ~/.dsh/profiles/web
+pnpm add dsh-lark-cli@github:aminuoshi-378/dsh-lark#<new tag>
 ```
 
-If you installed via `pnpm add dsh-lark-cli@github:...`, run the same `pnpm add` command again to fetch the new version. You can also have the model in a dsh session do it for you (paste the commands above, or reuse the "Option 3: prompt-driven install" prompt, saying it's an upgrade).
+**Option 2 (tarball)**: re-run `pnpm add` with the new version in the URL.
 
-**Option 2 (source build)**: in your local repo run `git pull && npm install && npm run build`; since the profile points at the directory via `link:`, the update takes effect after restarting `dsh web`.
+**Option 3 (link source)**: in the clone run `git pull && npm install && npm run build`, then restart `dsh web`.
 
-**Check your version**: `git describe --tags` (clone install) or the `version` field in `package.json`; release notes live on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. After upgrading, run `npm test` once to confirm the environment is healthy.
+For Option 4, just send the matching command to the model. **Check your version**: look at the `dsh-lark-cli` entry in the profile's `package.json`, or the `version` field of `node_modules/dsh-lark-cli/package.json`; release notes live on the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page. After upgrading, run `npm test` once in the plugin directory to confirm the environment is healthy.
 
 ## Skills
 
