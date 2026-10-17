@@ -1,0 +1,4 @@
+- insert:
+    - id: lark-cli
+      name: 'dsh-lark-cli'
+      config: {}
