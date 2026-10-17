@@ -43,13 +43,15 @@
 
 四种安装方式任选其一；装好后都需要按「[挂载进 profile](#挂载进-profile)」完成接线。
 
-### 方式一：Release tarball 安装（推荐，零构建）
+### 方式一：Release tarball 安装（推荐，零克隆）
 
-从 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页下载对应版本的 Source code (tarball/zip)，解压后**自带构建产物说明**——tarball 内不含 `dist/`，需执行一次安装命令（`prepare` 脚本会自动构建）：
+从 [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) 页下载对应版本的 Source code (tar.gz)，或直接用固定地址下载（把 `v0.1.0` 换成目标版本号）：
 
 ```bash
-tar -xzf dsh-lark-<版本>.tar.gz && cd aminuoshi-378-dsh-lark-<短哈希>
-npm install          # prepare 脚本自动执行 tsc 构建出 dist/
+curl -LO https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+tar -xzf v0.1.0.tar.gz              # 解压出 dsh-lark-0.1.0/
+cd dsh-lark-0.1.0
+npm install                          # prepare 脚本自动执行 tsc 构建出 dist/
 ```
 
 不想手动操作的话，也可把 Release 链接交给 dsh 会话里的模型，让它下载、解压、安装、接线一条龙完成。

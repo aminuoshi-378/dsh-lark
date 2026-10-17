@@ -45,11 +45,13 @@ Four install options — pick one; after any of them, finish wiring with "[Mount
 
 ### Option 1: Release tarball (recommended, zero-clone)
 
-Download the Source code (tarball/zip) for a version from the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page and unpack it. The tarball does not contain `dist/`, so run one install command (the `prepare` script builds automatically):
+Download the Source code (tar.gz) for a version from the [Releases](https://github.com/aminuoshi-378/dsh-lark/releases) page, or fetch it directly (replace `v0.1.0` with the target version):
 
 ```bash
-tar -xzf dsh-lark-<version>.tar.gz && cd aminuoshi-378-dsh-lark-<short-hash>
-npm install          # the prepare script runs tsc to produce dist/
+curl -LO https://github.com/aminuoshi-378/dsh-lark/archive/refs/tags/v0.1.0.tar.gz
+tar -xzf v0.1.0.tar.gz              # unpacks to dsh-lark-0.1.0/
+cd dsh-lark-0.1.0
+npm install                          # the prepare script runs tsc to produce dist/
 ```
 
 Alternatively, hand the Release link to the model in a dsh session and let it download, unpack, install, and wire everything up.
