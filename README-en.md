@@ -4,6 +4,10 @@ English | [简体中文](README.md)
 
 In one sentence: **let your AI assistant operate Feishu for you directly** — send messages, write docs, check schedules, manage tasks, and work spreadsheets without leaving the chat.
 
+| You say | What happens in Feishu |
+|---|---|
+| ![Ask in a dsh chat to write a Feishu wiki doc](docs/assets/demo-chat.png) | ![The Feishu wiki doc, written](docs/assets/demo-result.png) |
+
 A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) plugin for Feishu / Lark access. Once installed, you give instructions in natural language and the model drives the official `lark-cli` through the `lark_cli` tool:
 
 | You say | The model does |

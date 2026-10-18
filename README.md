@@ -4,6 +4,10 @@
 
 一句话介绍：**让 AI 助手直接替你操作飞书**——发消息、写文档、查日程、管任务、理表格，不用离开对话窗口。
 
+| 在对话里说 | 飞书里的真实结果 |
+|---|---|
+| ![在 dsh 会话中一句话写入飞书知识库](docs/assets/demo-chat.png) | ![飞书知识库文档写入成功](docs/assets/demo-result.png) |
+
 为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（dsh）提供飞书 / Lark 访问能力的插件。安装后，你可以在会话里用自然语言下达指令，模型通过 `lark_cli` 工具调用官方 `lark-cli` 完成实际操作：
 
 | 你说 | 模型做 |
