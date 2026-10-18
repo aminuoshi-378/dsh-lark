@@ -4,6 +4,9 @@
 
 一句话介绍：**让 AI 助手直接替你操作飞书**——发消息、写文档、查日程、管任务、理表格，不用离开对话窗口。
 
+<video src="docs/assets/demo.mp4" controls muted width="100%"></video>
+*Demo：在 dsh 会话里说一句话，51 秒后飞书云文档里真的出现了这篇文档。*
+
 | 在对话里说 | 飞书里的真实结果 |
 |---|---|
 | ![在 dsh 会话中一句话写入飞书知识库](docs/assets/demo-chat.png) | ![飞书知识库文档写入成功](docs/assets/demo-result.png) |

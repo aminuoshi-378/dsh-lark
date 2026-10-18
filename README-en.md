@@ -4,6 +4,9 @@ English | [简体中文](README.md)
 
 In one sentence: **let your AI assistant operate Feishu for you directly** — send messages, write docs, check schedules, manage tasks, and work spreadsheets without leaving the chat.
 
+<video src="docs/assets/demo.mp4" controls muted width="100%"></video>
+*Demo: one sentence in a dsh chat — 51 seconds later the Feishu doc really exists.*
+
 | You say | What happens in Feishu |
 |---|---|
 | ![Ask in a dsh chat to write a Feishu wiki doc](docs/assets/demo-chat.png) | ![The Feishu wiki doc, written](docs/assets/demo-result.png) |
